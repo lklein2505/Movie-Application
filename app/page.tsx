@@ -1,101 +1,113 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Navbar from "../components/navbar";
+import NewestMoviesSection from "../components/newestMoviesSection";
+import TopMoviesSection from "@/components/topMoviesSection";
+import MoviesByGenreSection from "@/components/moviesByGenreSection";
+import { API_KEY, BASE_URL } from "@/utils/constants/apiInfo";
+
+// Movie interface
+interface Movie {
+  id: number;
+  title: string;
+  poster_path: string;
+  streamingServices?: string[];
+}
+
+// Genre interface
+interface Genre {
+  id: number;
+  name: string;
+}
+
+const genres: Genre[] = [
+  { id: 28, name: "Action" },
+  { id: 35, name: "Comedy" },
+  { id: 18, name: "Drama" },
+  { id: 27, name: "Horror" },
+  { id: 878, name: "Sci-Fi" },
+  { id: 53, name: "Thriller" },
+  { id: 14, name: "Fantasy" },
+  { id: 16, name: "Animation" },
+];
+
+const Home = () => {
+  const [newestMovies, setNewestMovies] = useState<Movie[]>([]);  // Ensure to use Movie[] type
+  const [moviesByGenre, setMoviesByGenre] = useState<Record<number, Movie[]>>({});
+  const [activeGenreIndex, setActiveGenreIndex] = useState(0);
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        // Fetch newest and top-rated movies concurrently
+        const [newestResponse, topResponse] = await Promise.all([
+          axios.get(`${BASE_URL}/movie/now_playing`, { params: { api_key: API_KEY } }),
+          axios.get(`${BASE_URL}/movie/top_rated`, { params: { api_key: API_KEY } }),
+        ]);
+        
+        // Take the first 10 newest movies and top 3 top-rated movies
+        setNewestMovies(newestResponse.data.results.slice(0, 10));
+      } catch (error) {
+        console.error("Error fetching movies:", error);
+      }
+    };
+
+    fetchMovies();
+  }, []);
+
+  // Fetching movies by genre
+  useEffect(() => {
+    const fetchMoviesByGenre = async () => {
+      try {
+        const genreMovies: Record<number, Movie[]> = {};
+        for (const genre of genres) {
+          const response = await axios.get(`${BASE_URL}/discover/movie`, {
+            params: {
+              api_key: API_KEY,
+              with_genres: genre.id,
+              sort_by: "popularity.desc",
+            },
+          });
+          genreMovies[genre.id] = response.data.results.slice(0, 3);
+        }
+        setMoviesByGenre(genreMovies);
+      } catch (error) {
+        console.error("Error fetching movies by genre:", error);
+      }
+    };
+    fetchMoviesByGenre();
+  }, []);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div>
+      {/* Pass favoriteMovies and toggleFavorite to Navbar */}
+      <Navbar />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      <div className="container mx-auto p-4 pt-16">
+
+        <h1 className="mt-40 mb-12 text-center text-5xl text-bold text-violet-200"> The movie app you've been seeking for a long time! </h1>
+        <h2 className="mb-12 text-center text-2xl text-gray-400"> With "Klein Movies", you have all the information about every movie just around the corner...</h2>
+
+        {/* Newest Movies */}
+        <NewestMoviesSection
+          movies={newestMovies}
+        />
+
+        {/* Top 3 Movies */}
+        <TopMoviesSection />
+
+        {/* Movies by Genre */}
+        <MoviesByGenreSection
+          genreName={genres[activeGenreIndex].name}
+          movies={moviesByGenre[genres[activeGenreIndex].id] || []}
+          activeGenreIndex={activeGenreIndex}
+          setActiveGenreIndex={setActiveGenreIndex}
+        />
+      </div>
     </div>
   );
-}
+};
+
+export default Home;
