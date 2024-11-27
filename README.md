@@ -17,10 +17,14 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 2. Without using docker-compose:
 
 Start with cloning the repository:
+```bash
 git clone <repository-url>
+```
 
 Navigate to the project directory:
+```bash
 cd <project-directory>
+```
 
 Install dependencies:
 ```bash
