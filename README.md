@@ -2,6 +2,17 @@
 
 1. Using docker-compose:
 
+
+Start with cloning the repository:
+```bash
+git clone <repository-url>
+```
+
+Navigate to the project directory:
+```bash
+cd <project-directory>
+```
+
 ```bash
 npm install docker
 ```
